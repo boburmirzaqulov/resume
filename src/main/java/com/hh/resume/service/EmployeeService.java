@@ -1,5 +1,6 @@
 package com.hh.resume.service;
 
+import com.hh.resume.dao.Education;
 import com.hh.resume.dao.Employee;
 import com.hh.resume.dto.EmployeeDTO;
 import com.hh.resume.dto.ResponseDTO;
@@ -11,7 +12,6 @@ import com.hh.resume.helper.constants.AppResponseMessages;
 import com.hh.resume.helper.property.FileStorageProperties;
 import com.hh.resume.mapping.EmployeeMapping;
 import com.hh.resume.repository.EmployeeRepository;
-import com.hh.resume.repository.SkillRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -30,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -84,8 +85,13 @@ public class EmployeeService {
     //add new Employee
     public ResponseDTO<?> addEmployee(EmployeeDTO employeeDTO, MultipartFile photo) {
         List<ValidatorDTO> errors = Validator.validateEmployee(employeeDTO);
-        Validator.validateEducation(employeeDTO.getEducations());
-        setPhoto(photo, errors, employeeDTO);
+
+        if (employeeDTO.getEducations() != null) {
+            errors.addAll(Validator.validateEducation(employeeDTO.getEducations()));
+        }
+
+        errors.addAll(setPhoto(photo, employeeDTO));
+
         if (errors.size() > 0){
             FileStorageProperties.deleteFile(photo.getOriginalFilename(), employeeDTO);
             return new ResponseDTO<>(false, AppResponseCode.VALIDATION_ERROR,
@@ -94,7 +100,9 @@ public class EmployeeService {
 
         Employee employee = EmployeeMapping.toEntity(employeeDTO);
 
-        employee.setSkills(skillService.getSkillListFromDB(employee.getSkills(), errors));
+        if (employee.getSkills() != null) {
+            employee.setSkills(skillService.getSkillListFromDB(employee.getSkills(), errors));
+        }
         if (errors.size() > 0){
             FileStorageProperties.deleteFile(photo.getOriginalFilename(), employeeDTO);
             return new ResponseDTO<>(false, AppResponseCode.VALIDATION_ERROR,
@@ -109,18 +117,29 @@ public class EmployeeService {
             return new ResponseDTO<>(false, AppResponseCode.DATABASE_ERROR, AppResponseMessages.DATABASE_ERROR, employeeDTO);
         }
 
-        educationService.saveByEmployee(employee, errors);
+        List<Education> educations = educationService.saveByEmployee(employeeDTO.getEducations(), errors, employee);
+
 
         if (errors.size() > 0){
             FileStorageProperties.deleteFile(photo.getOriginalFilename(), employeeDTO);
             return new ResponseDTO<>(false, AppResponseCode.DATABASE_ERROR, AppResponseMessages.DATABASE_ERROR, employeeDTO, errors);
         }
+        try {
+            employeeRepository.save(employee);
+        } catch (Exception e){
+            e.printStackTrace();
+            FileStorageProperties.deleteFile(photo.getOriginalFilename(), employeeDTO);
+            return new ResponseDTO<>(false, AppResponseCode.DATABASE_ERROR, AppResponseMessages.DATABASE_ERROR, employeeDTO);
+        }
+
+        employee.setEducations(educations);
 
         return new ResponseDTO<>(true, AppResponseCode.OK, AppResponseMessages.OK, EmployeeMapping.toDto(employee));
     }
 
     //set photo to Employee
-    private void setPhoto(MultipartFile file, List<ValidatorDTO> errors, EmployeeDTO employeeDTO){
+    private List<ValidatorDTO> setPhoto(MultipartFile file, EmployeeDTO employeeDTO){
+        List<ValidatorDTO> errors = new ArrayList<>();
         // Normalize file name
         String fileName = StringUtils.cleanPath(file.getOriginalFilename());
 
@@ -145,6 +164,7 @@ public class EmployeeService {
             FileStorageProperties.deleteFile(file.getOriginalFilename(), employeeDTO);
             ex.printStackTrace();
         }
+        return errors;
     }
 
     public Resource loadFileAsResource(String fileName) {

@@ -2,8 +2,11 @@ package com.hh.resume.service;
 
 import com.hh.resume.dao.Education;
 import com.hh.resume.dao.Employee;
+import com.hh.resume.dto.EducationDTO;
+import com.hh.resume.dto.EmployeeDTO;
 import com.hh.resume.dto.ValidatorDTO;
 import com.hh.resume.helper.constants.AppResponseMessages;
+import com.hh.resume.mapping.EducationMapping;
 import com.hh.resume.repository.EducationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,12 +20,42 @@ import java.util.stream.Collectors;
 public class EducationService {
     private final EducationRepository educationRepository;
 
-    public void saveByEmployee(Employee employee, List<ValidatorDTO> errors) {
+    public List<Education> saveByEmployee(List<EducationDTO> educationDTOList, List<ValidatorDTO> errors, Employee employee) {
+        EducationDTO headEducation = null;
+        List<Education> entityList = new ArrayList<>();
+        for (EducationDTO educationDTO : educationDTOList) {
+            if (educationDTO.getIsHead()) {
+                headEducation = educationDTO;
+            } else {
+                entityList.add(EducationMapping.toEntity(educationDTO, new EmployeeDTO(employee.getId())));
+            }
+        }
+        try {
+            educationRepository.saveAll(entityList);
+        } catch (Exception e){
+            e.printStackTrace();
+            errors.add(new ValidatorDTO("database education - save method", AppResponseMessages.DATABASE_ERROR));
+        }
+        if (headEducation != null){
+            try {
+                Education education = EducationMapping.toEntity(headEducation, new EmployeeDTO(employee.getId()));
+                educationRepository.save(education);
+                employee.setHeadEducation(education.getId());
+                entityList.add(education);
+            } catch (Exception e){
+                e.printStackTrace();
+                errors.add(new ValidatorDTO("database education - save method", AppResponseMessages.DATABASE_ERROR));
+            }
+        }
+        return entityList;
+    }
+
+    public void updateByEmployee(Employee employee, List<ValidatorDTO> errors) {
         List<Education> listFromDB = new ArrayList<>();
         try {
              listFromDB = educationRepository.findAllByEmployee(employee);
         } catch (Exception e){
-            errors.add(new ValidatorDTO("database education - find method", AppResponseMessages.DATABASE_ERROR));
+            errors.add(new ValidatorDTO("database education - update method", AppResponseMessages.DATABASE_ERROR));
         }
 
         if (!listFromDB.isEmpty()) {
@@ -41,7 +74,7 @@ public class EducationService {
             listFromDB.removeAll(deleteList);
         }
 
-        if (employee.getId() != null) {
+        if (employee.getId() != null && employee.getEducations() != null) {
             try {
 
                 for (Education education : employee.getEducations()) {
@@ -54,7 +87,7 @@ public class EducationService {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                errors.add(new ValidatorDTO("database education - save method", AppResponseMessages.DATABASE_ERROR));
+                errors.add(new ValidatorDTO("database education - update method", AppResponseMessages.DATABASE_ERROR));
             }
         }
     }

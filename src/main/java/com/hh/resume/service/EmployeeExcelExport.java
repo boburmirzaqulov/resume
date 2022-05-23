@@ -90,7 +90,6 @@ public class EmployeeExcelExport {
             createCell(row, columnCount++, DateHelper.toString(employee.getBirthDate()), style);
             createCell(row, columnCount++, employee.getAddress(), style);
             createCell(row, columnCount++, educations.isEmpty() ? "" : educations.get(0).getName(), style);
-
         }
     }
 

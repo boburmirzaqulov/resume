@@ -33,30 +33,14 @@ public class SkillService {
         } catch (Exception e){
             errors.add(new ValidatorDTO("database skill - find method", AppResponseMessages.DATABASE_ERROR));
         }
-        //get names from available skills
-        List<String> skillNamesDB = new ArrayList<>();
-        if (!skillsDB.isEmpty()) {
-            skillNamesDB = skillsDB
-                    .stream()
-                    .map(Skill::getName)
-                    .collect(Collectors.toList());
-        }
 
-        //find new Skills
-        List<Skill> newSkills = new ArrayList<>();
-        if (!skillNamesDB.isEmpty()) {
-            for (String skill : skillNames) {
-                if (!skillNamesDB.contains(skill)) {
-                    newSkills.add(new Skill(skill));
-                }
-            }
-        }
+        skills.removeAll(skillsDB);
 
         //save new Skills
-        if (!newSkills.isEmpty()) {
+        if (!skills.isEmpty()) {
             try {
-                skillRepository.saveAll(newSkills);
-                skillsDB.addAll(newSkills);
+                skillRepository.saveAll(skills);
+                skillsDB.addAll(skills);
             } catch (Exception e){
                 errors.add(new ValidatorDTO("database skill - saveAll method", AppResponseMessages.DATABASE_ERROR));
                 return null;

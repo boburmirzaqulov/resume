@@ -12,10 +12,12 @@ public class EmployeeMapping {
     public static Employee toEntity(EmployeeDTO employeeDTO){
         if (employeeDTO == null) return null;
         Long idEdu = null;
-        for (EducationDTO education : employeeDTO.getEducations()) {
-            if (education.getIsHead() != null && education.getIsHead()) {
-                idEdu = education.getId();
-                break;
+        if (employeeDTO.getEducations() != null) {
+            for (EducationDTO education : employeeDTO.getEducations()) {
+                if (education.getIsHead() != null && education.getIsHead()) {
+                    idEdu = education.getId();
+                    break;
+                }
             }
         }
         return new Employee(

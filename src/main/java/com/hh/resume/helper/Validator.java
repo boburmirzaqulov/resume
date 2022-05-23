@@ -11,10 +11,11 @@ import java.util.List;
 
 public class Validator {
 
-    static List<ValidatorDTO> errors = new ArrayList<>();
+//    static List<ValidatorDTO> errors = new ArrayList<>();
 
     public static List<ValidatorDTO> validateEmployee(EmployeeDTO employeeDTO){
-       errors.clear();
+//       errors.clear();
+       List<ValidatorDTO> errors = new ArrayList<>();
         if (!StringHelper.isValid(employeeDTO.getName())){
             errors.add(new ValidatorDTO("employee.name", AppResponseMessages.EMPTY_FIELD));
         }
@@ -28,7 +29,8 @@ public class Validator {
     }
 
     public static List<ValidatorDTO> validateEducation(EducationDTO education){
-       errors.clear();
+//       errors.clear();
+        List<ValidatorDTO> errors = new ArrayList<>();
        boolean isDate = false;
        if (!DateHelper.isValidDate(education.getBeginDate())){
             errors.add(new ValidatorDTO("education.beginDate", AppResponseMessages.DATE_FORMAT_YYYY_MM_DD));
@@ -41,11 +43,15 @@ public class Validator {
         if (!StringHelper.isValid(education.getName())){
             errors.add(new ValidatorDTO("education.name", AppResponseMessages.EMPTY_FIELD));
         }
+//        if (!StringHelper.isValid(education.getBranch())){
+//            errors.add(new ValidatorDTO("education.branch", AppResponseMessages.EMPTY_FIELD));
+//        }
         return errors;
     }
 
     public static List<ValidatorDTO> validateEducation(List<EducationDTO> educationList){
         int i = 0;
+        List<ValidatorDTO> errors = new ArrayList<>();
         for (EducationDTO education : educationList) {
             if (education.getIsHead() != null && education.getIsHead()) i++;
             validateEducation(education);

@@ -26,6 +26,8 @@ public class Education {
 
     private String name;
 
+    private String branch;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "employee_id")
     private Employee employee;

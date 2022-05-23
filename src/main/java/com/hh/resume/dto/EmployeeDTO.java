@@ -20,4 +20,8 @@ public class EmployeeDTO {
     private String photoUri;
     private List<SkillDTO> skills;
     private List<EducationDTO> educations;
+
+    public EmployeeDTO(Long id) {
+        this.id = id;
+    }
 }

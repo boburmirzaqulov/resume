@@ -12,5 +12,6 @@ public class EducationDTO {
     private String beginDate;
     private String endDate;
     private String name;
+    private String branch;
     private Boolean isHead;
 }

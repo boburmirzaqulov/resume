@@ -18,6 +18,7 @@ public class EducationMapping {
                 DateHelper.toDate(educationDTO.getBeginDate()),
                 DateHelper.toDate(educationDTO.getEndDate()),
                 educationDTO.getName(),
+                educationDTO.getBranch(),
                 employee
         );
     }
@@ -27,6 +28,7 @@ public class EducationMapping {
                 DateHelper.toString(education.getBeginDate()),
                 DateHelper.toString(education.getEndDate()),
                 education.getName(),
+                education.getBranch(),
                 isHead
         );
     }
