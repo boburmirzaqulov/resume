@@ -134,7 +134,7 @@ public class EmployeeExportPdf {
                 }
             }
 
-            if (size < 3){
+            if (size < 3 || size % n != 0){
                 skills.append("\t\t\t\t\t\t\t</ul>");
             }
 
