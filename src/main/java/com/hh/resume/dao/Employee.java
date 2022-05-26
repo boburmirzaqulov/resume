@@ -26,6 +26,8 @@ public class Employee {
     @Column(name = "birthdate", columnDefinition = "date default '2020-02-02'")
     private Date birthDate;
 
+    private String job;
+    private String profile;
     private String address;
 
     @Column(name = "photourl")
@@ -46,4 +48,5 @@ public class Employee {
 
     @OneToMany( mappedBy = "employee")
     private List<Education> educations;
+
 }

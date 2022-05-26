@@ -26,6 +26,8 @@ public class EmployeeMapping {
                 employeeDTO.getName(),
                 employeeDTO.getPatronymic(),
                 DateHelper.toDate(employeeDTO.getBirthDate()),
+                employeeDTO.getJob(),
+                employeeDTO.getProfile(),
                 employeeDTO.getAddress(),
                 employeeDTO.getPhotoUrl(),
                 employeeDTO.getPhotoUri(),
@@ -64,13 +66,15 @@ public class EmployeeMapping {
                 employee.getName(),
                 employee.getPatronymic(),
                 DateHelper.toString(employee.getBirthDate()),
+                employee.getProfile(),
+                employee.getProfile(),
                 employee.getAddress(),
                 employee.getPhotoUrl(),
                 employee.getPhotoUri(),
                 employee.getSkills() == null ? null :
                         employee.getSkills()
                                 .stream().map(SkillMapping::toDto)
-                                .collect(Collectors.toList()),
+                                .collect(Collectors.toSet()),
                 educationDTOList
         );
     }

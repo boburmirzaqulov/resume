@@ -18,6 +18,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
@@ -32,6 +33,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -59,13 +62,19 @@ public class EmployeeService {
     }
 
     public ResponseDTO<?> getAll(MultiValueMap<String, String> params) {
-        boolean isPageble = StringHelper.isNumber(params.getFirst("page"))
-                && StringHelper.isNumber(params.getFirst("size"));
-        if(isPageble){
+
+        boolean isPage = StringHelper.isNumber(params.getFirst("page"));
+        boolean isSize = StringHelper.isNumber(params.getFirst("size"));
+
+        List<ValidatorDTO> errors = new ArrayList<>();
+        if (isPage) errors.add(new ValidatorDTO("page", AppResponseMessages.NOT_FOUND));
+        if (isSize) errors.add(new ValidatorDTO("size", AppResponseMessages.NOT_FOUND));
+
+        if(isPage && isSize){
             int page = StringHelper.getNumber(params.getFirst("page"));
             int size = StringHelper.getNumber(params.getFirst("size"));
             try {
-                PageRequest pageRequest = PageRequest.of(page, size);
+                PageRequest pageRequest = PageRequest.of(page, size, Sort.by("id").ascending());
                 Page<Employee> employeePage = employeeRepository.findAll(pageRequest);
 
                 List<EmployeeDTO> employeeDTOList = employeeRepository.findAll()
@@ -79,7 +88,7 @@ public class EmployeeService {
                 return new ResponseDTO<>(false, AppResponseCode.DATABASE_ERROR, AppResponseMessages.DATABASE_ERROR,null);
             }
         }
-        return new ResponseDTO<>(false,AppResponseCode.VALIDATION_ERROR, AppResponseMessages.VALIDATION_ERROR, params);
+        return new ResponseDTO<>(false,AppResponseCode.VALIDATION_ERROR, AppResponseMessages.VALIDATION_ERROR, params, errors);
     }
 
     //add new Employee
@@ -116,9 +125,10 @@ public class EmployeeService {
             FileStorageProperties.deleteFile(photo.getOriginalFilename(), employeeDTO);
             return new ResponseDTO<>(false, AppResponseCode.DATABASE_ERROR, AppResponseMessages.DATABASE_ERROR, employeeDTO);
         }
-
-        List<Education> educations = educationService.saveByEmployee(employeeDTO.getEducations(), errors, employee);
-
+        List<Education> educations = null;
+        if (employeeDTO.getEducations() != null) {
+            educations = educationService.saveByEmployee(employeeDTO.getEducations(), errors, employee);
+        }
 
         if (errors.size() > 0){
             FileStorageProperties.deleteFile(photo.getOriginalFilename(), employeeDTO);
@@ -141,7 +151,7 @@ public class EmployeeService {
     private List<ValidatorDTO> setPhoto(MultipartFile file, EmployeeDTO employeeDTO){
         List<ValidatorDTO> errors = new ArrayList<>();
         // Normalize file name
-        String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+        String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
 
         try {
             // Check if the file's name contains invalid characters
@@ -154,7 +164,7 @@ public class EmployeeService {
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
             FileStorageProperties.addFilePath(file.getOriginalFilename(), targetLocation);
             String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .path("employee/downloadFile/")
+                    .path("employee/image-manual-response/")
                     .path(fileName)
                     .toUriString();
             employeeDTO.setPhotoUrl(fileDownloadUri);
@@ -183,6 +193,17 @@ public class EmployeeService {
     }
 
     public List<Employee> listAll(){
-        return employeeRepository.findAll();
+        return employeeRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
+    }
+
+    public Employee findById(Long id) {
+        Optional<Employee> employee = employeeRepository.findById(id);
+        if (employee.isEmpty()) {
+            return null;
+        }
+        Employee employee1 = employee.get();
+        educationService.sortByEndDateDesc(employee1.getEducations());
+
+        return employee1;
     }
 }

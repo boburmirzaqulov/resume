@@ -11,13 +11,14 @@ import java.util.List;
 
 public class Validator {
 
-//    static List<ValidatorDTO> errors = new ArrayList<>();
 
     public static List<ValidatorDTO> validateEmployee(EmployeeDTO employeeDTO){
-//       errors.clear();
        List<ValidatorDTO> errors = new ArrayList<>();
         if (!StringHelper.isValid(employeeDTO.getName())){
             errors.add(new ValidatorDTO("employee.name", AppResponseMessages.EMPTY_FIELD));
+        }
+        if (!StringHelper.isValid(employeeDTO.getJob())){
+            errors.add(new ValidatorDTO("employee.job", AppResponseMessages.EMPTY_FIELD));
         }
         if (!DateHelper.isValidDate(employeeDTO.getBirthDate())){
             errors.add(new ValidatorDTO("employee.birthDate", AppResponseMessages.DATE_FORMAT_YYYY_MM_DD));
@@ -25,11 +26,13 @@ public class Validator {
         if (!StringHelper.isValid(employeeDTO.getAddress())){
             errors.add(new ValidatorDTO("employee.address", AppResponseMessages.EMPTY_FIELD));
         }
+        if (employeeDTO.getProfile() != null && employeeDTO.getProfile().length() > 255){
+            errors.add(new ValidatorDTO("employee.profile", AppResponseMessages.VALUE_LENGTH_255));
+        }
         return errors;
     }
 
     public static List<ValidatorDTO> validateEducation(EducationDTO education){
-//       errors.clear();
         List<ValidatorDTO> errors = new ArrayList<>();
        boolean isDate = false;
        if (!DateHelper.isValidDate(education.getBeginDate())){
@@ -43,9 +46,6 @@ public class Validator {
         if (!StringHelper.isValid(education.getName())){
             errors.add(new ValidatorDTO("education.name", AppResponseMessages.EMPTY_FIELD));
         }
-//        if (!StringHelper.isValid(education.getBranch())){
-//            errors.add(new ValidatorDTO("education.branch", AppResponseMessages.EMPTY_FIELD));
-//        }
         return errors;
     }
 

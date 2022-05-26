@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -15,10 +16,12 @@ public class EmployeeDTO {
     private String name;
     private String patronymic;
     private String birthDate;
+    private String job;
+    private String profile;
     private String address;
     private String photoUrl;
     private String photoUri;
-    private List<SkillDTO> skills;
+    private Set<SkillDTO> skills;
     private List<EducationDTO> educations;
 
     public EmployeeDTO(Long id) {

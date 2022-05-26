@@ -19,9 +19,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class EmployeeExcelExport {
-    private XSSFWorkbook workbook;
+    private final XSSFWorkbook workbook;
     private XSSFSheet sheet;
-    private List<Employee> listEmployee;
+    private final List<Employee> listEmployee;
 
     public EmployeeExcelExport(List<Employee> listEmployee) {
         this.listEmployee = listEmployee;
@@ -89,7 +89,7 @@ public class EmployeeExcelExport {
             createCell(row, columnCount++, employee.getPatronymic(), style);
             createCell(row, columnCount++, DateHelper.toString(employee.getBirthDate()), style);
             createCell(row, columnCount++, employee.getAddress(), style);
-            createCell(row, columnCount++, educations.isEmpty() ? "" : educations.get(0).getName(), style);
+            createCell(row, columnCount, educations.isEmpty() ? "" : educations.get(0).getName(), style);
         }
     }
 

@@ -20,12 +20,6 @@ public class DateHelper {
         }
     }
 
-    public static boolean isValidDate(Date date){
-        if (date == null) return false;
-        return isValidDate(date.toString());
-    }
-
-
     public static Date toDate(String date){
         return isValidDate(date) ? Date.valueOf(date) : null;
     }

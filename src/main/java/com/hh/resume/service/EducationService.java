@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -50,45 +49,7 @@ public class EducationService {
         return entityList;
     }
 
-    public void updateByEmployee(Employee employee, List<ValidatorDTO> errors) {
-        List<Education> listFromDB = new ArrayList<>();
-        try {
-             listFromDB = educationRepository.findAllByEmployee(employee);
-        } catch (Exception e){
-            errors.add(new ValidatorDTO("database education - update method", AppResponseMessages.DATABASE_ERROR));
-        }
-
-        if (!listFromDB.isEmpty()) {
-            List<Long> actualIds = employee.getEducations()
-                    .stream()
-                    .map(Education::getId)
-                    .collect(Collectors.toList());
-
-            List<Education> deleteList = new ArrayList<>();
-            for (Education education : listFromDB) {
-                if (actualIds.contains(education.getId())) {
-                    deleteList.add(education);
-                }
-            }
-
-            listFromDB.removeAll(deleteList);
-        }
-
-        if (employee.getId() != null && employee.getEducations() != null) {
-            try {
-
-                for (Education education : employee.getEducations()) {
-                    education.setEmployee(employee);
-                }
-                educationRepository.saveAll(employee.getEducations());
-                if (!listFromDB.isEmpty()) {
-                    listFromDB.addAll(employee.getEducations());
-                    employee.setEducations(listFromDB);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                errors.add(new ValidatorDTO("database education - update method", AppResponseMessages.DATABASE_ERROR));
-            }
-        }
+    public void sortByEndDateDesc(List<Education> educations){
+        educations.sort((o1, o2) -> o2.getEndDate().compareTo(o1.getEndDate()));
     }
 }
